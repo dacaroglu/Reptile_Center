@@ -1,0 +1,52 @@
+{% set items = items or [] %}
+<div class="overflow-x-auto rounded-xl border border-slate-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900/60">
+      <tr class="text-left">
+        <th class="px-4 py-3">Terrarium</th>
+        <th class="px-4 py-3">Temperature</th>
+        <th class="px-4 py-3">Humidity</th>
+        <th class="px-4 py-3">Updated</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for it in items|sort(attribute='terrarium_slug') %}
+      {% set updated = it.ts_temperature or it.ts_humidity %}
+      <tr class="border-t border-slate-800 hover:bg-slate-900/30">
+        <td class="px-4 py-3 font-medium">{{ it.terrarium_slug }}</td>
+
+        <td class="px-4 py-3">
+          {% if it.temperature is not none %}
+            {{ '%.1f'|format(it.temperature) }} {{ it.temperature_unit or '°C' }}
+          {% else %}
+            <span class="text-slate-500">—</span>
+          {% endif %}
+        </td>
+
+        <td class="px-4 py-3">
+          {% if it.humidity is not none %}
+            {{ '%.0f'|format(it.humidity) }} {{ it.humidity_unit or '%' }}
+          {% else %}
+            <span class="text-slate-500">—</span>
+          {% endif %}
+        </td>
+
+        <td class="px-4 py-3 text-slate-400">
+          {% if updated %}
+            {{ updated.strftime('%Y-%m-%d %H:%M:%S') }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <td class="px-4 py-3">
+          <a href="/terrarium/{{ it.terrarium_slug }}" class="text-sky-400 hover:underline">Open</a>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td class="px-4 py-6 text-slate-400" colspan="5">No data yet. Once HA pushes a reading, it will appear here.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>

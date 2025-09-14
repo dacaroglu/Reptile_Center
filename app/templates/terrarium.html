@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+  <a href="/" class="text-sky-400 hover:underline">← Back</a>
+  <h2 class="text-lg font-medium mt-2 mb-4">Terrarium: <span class="font-mono">{{ slug }}</span></h2>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="rounded-xl border border-slate-800 p-4">
+      <h3 class="font-semibold mb-2">Temperature (last 24h)</h3>
+      <canvas id="tempChart" height="120"></canvas>
+    </div>
+    <div class="rounded-xl border border-slate-800 p-4">
+      <h3 class="font-semibold mb-2">Humidity (last 24h)</h3>
+      <canvas id="humChart" height="120"></canvas>
+    </div>
+  </div>
+
+  <script>
+  async function loadSeries(slug) {
+    const url = `/api/v1/readings?terrarium=${encodeURIComponent(slug)}&hours=24`;
+    const res = await fetch(url, {headers: {'Accept': 'application/json'}});
+    const data = await res.json();
+    const temps = data.filter(d => d.sensor_type === 'temperature');
+    const hums  = data.filter(d => d.sensor_type === 'humidity');
+    const makeSeries = (arr) => ({
+      labels: arr.map(d => new Date(d.ts)),
+      values: arr.map(d => d.value),
+      unit:   arr.length ? arr[0].unit : ''
+    });
+    return { temp: makeSeries(temps), hum: makeSeries(hums) };
+  }
+
+  function ensureChart(ctx, existing, series, label) {
+    if (!existing) {
+      return new Chart(ctx, {
+        type: 'line',
+        data: { labels: series.labels, datasets: [{ label, data: series.values, fill: false, tension: 0.25, pointRadius: 0 }] },
+        options: {
+          responsive: true, animation: false, parsing: false,
+          scales: {
+            x: { type: 'time', time: { unit: 'hour' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.15)' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.15)' } }
+          },
+          plugins: { legend: { labels: { color: '#cbd5e1' } }, tooltip: { mode: 'index', intersect: false } }
+        }
+      });
+    } else {
+      existing.data.labels = series.labels;
+      existing.data.datasets[0].data = series.values;
+      existing.data.datasets[0].label = label;
+      existing.update('none');
+      return existing;
+    }
+  }
+
+  (async () => {
+    const slug = {{ slug|tojson }};
+    const tempCtx = document.getElementById('tempChart').getContext('2d');
+    const humCtx  = document.getElementById('humChart').getContext('2d');
+    let tempChart = null, humChart = null;
+
+    async function refresh() {
+      const series = await loadSeries(slug);
+      tempChart = ensureChart(tempCtx, tempChart, series.temp, `Temperature (${series.temp.unit})`);
+      humChart  = ensureChart(humCtx,  humChart,  series.hum,  `Humidity (${series.hum.unit})`);
+    }
+
+    await refresh();
+    setInterval(refresh, 10000); // every 10s
+  })();
+</script>
+
+{% endblock %}

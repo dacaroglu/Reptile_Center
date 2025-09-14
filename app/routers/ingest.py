@@ -6,11 +6,12 @@ from ..schemas import IngestPayload, ReadingOut
 from ..database import get_db
 from ..deps import verify_api_key
 from .. import crud, models
+from ..events import event_bus
 
 router = APIRouter(prefix="/api/v1", tags=["ingest"])
 
 @router.post("/ingest", status_code=status.HTTP_202_ACCEPTED, response_model=ReadingOut, dependencies=[Depends(verify_api_key)])
-def ingest(payload: IngestPayload, db: Session = Depends(get_db)):
+async def ingest(payload: IngestPayload, db: Session = Depends(get_db)):
     # normalize timestamp to UTC
     ts = payload.ts
     if ts.tzinfo is None:
@@ -29,6 +30,8 @@ def ingest(payload: IngestPayload, db: Session = Depends(get_db)):
         entity_id=payload.entity_id,
         ts=ts,
     )
+    await event_bus.publish({"terrarium": terr.slug, "sensor_type": sensor_type.value})
+
     return ReadingOut(
         terrarium_slug=terr.slug,
         sensor_type=sensor_type.value,

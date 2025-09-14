@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from .routers import sse 
 from .config import settings
 from .database import init_db
-from .routers import ingest, terrariums, health
+from .routers import ingest, terrariums, health,ui
 
 def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name)
@@ -16,6 +18,11 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(ingest.router)
     app.include_router(terrariums.router)
+    app.include_router(ui.router)
+    app.include_router(sse.router)
+
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
     return app
 
 app = create_app()
