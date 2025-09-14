@@ -1,0 +1,17 @@
+# Add into configuration.yaml (or split as package)
+rest_command:
+  push_reptile_reading:
+    url: "https://YOUR-LIGHTSAIL-DOMAIN.com/api/v1/ingest"
+    method: POST
+    headers:
+      content-type: "application/json"
+      X-API-Key: !secret reptile_api_key
+    payload: >
+      {
+        "terrarium_slug": "{{ terrarium_slug }}",
+        "sensor_type": "{{ sensor_type }}",
+        "value": {{ value }},
+        "unit": "{{ unit }}",
+        "entity_id": "{{ entity_id }}",
+        "ts": "{{ now().isoformat() }}"
+      }

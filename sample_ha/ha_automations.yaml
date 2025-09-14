@@ -1,0 +1,125 @@
+# Add to automations.yaml
+# EXAMPLE: Replace entity_id and terrarium_slug for each of your 4 enclosures.
+
+- id: push_terrarium1_temperature
+  alias: Push Terrarium 1 Temperature
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium1_temperature   # <— replace
+  condition: []
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-1"
+        sensor_type: "temperature"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '°C' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+- id: push_terrarium1_humidity
+  alias: Push Terrarium 1 Humidity
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium1_humidity      # <— replace
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-1"
+        sensor_type: "humidity"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '%' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+# Repeat similar pairs for Terrarium 2–4
+
+- id: push_terrarium2_temperature
+  alias: Push Terrarium 2 Temperature
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium2_temperature
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-2"
+        sensor_type: "temperature"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '°C' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+- id: push_terrarium2_humidity
+  alias: Push Terrarium 2 Humidity
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium2_humidity
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-2"
+        sensor_type: "humidity"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '%' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+- id: push_terrarium3_temperature
+  alias: Push Terrarium 3 Temperature
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium3_temperature
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-3"
+        sensor_type: "temperature"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '°C' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+- id: push_terrarium3_humidity
+  alias: Push Terrarium 3 Humidity
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium3_humidity
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-3"
+        sensor_type: "humidity"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '%' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+- id: push_terrarium4_temperature
+  alias: Push Terrarium 4 Temperature
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium4_temperature
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-4"
+        sensor_type: "temperature"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '°C' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued
+
+- id: push_terrarium4_humidity
+  alias: Push Terrarium 4 Humidity
+  trigger:
+    - platform: state
+      entity_id: sensor.terrarium4_humidity
+  action:
+    - service: rest_command.push_reptile_reading
+      data:
+        terrarium_slug: "terrarium-4"
+        sensor_type: "humidity"
+        value: "{{ trigger.to_state.state | float }}"
+        unit: "{{ trigger.to_state.attributes.unit_of_measurement or '%' }}"
+        entity_id: "{{ trigger.entity_id }}"
+  mode: queued

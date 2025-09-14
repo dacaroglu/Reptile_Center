@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - REPTILE_API_KEY=${REPTILE_API_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./reptile.db}
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./reptile.db:/app/reptile.db
