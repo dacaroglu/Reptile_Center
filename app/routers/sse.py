@@ -56,4 +56,13 @@ async def sse_summary(request: Request):
         finally:
             await event_bus.unsubscribe(q)
 
-    return StreamingResponse(gen(), media_type="text/event-stream")
+        # at the bottom of sse_summary()
+        return StreamingResponse(
+            gen(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",   # nginx: disable proxy buffering
+                "Connection": "keep-alive",
+            },
+        )

@@ -12,32 +12,33 @@
     </thead>
     <tbody>
     {% for it in items|sort(attribute='terrarium_slug') %}
-      {% set updated = it.ts_temperature or it.ts_humidity %}
+      {% set t  = it.get('temperature') %}
+      {% set tu = it.get('temperature_unit') or '°C' %}
+      {% set h  = it.get('humidity') %}
+      {% set hu = it.get('humidity_unit') or '%' %}
+      {% set updated = it.get('ts_temperature') or it.get('ts_humidity') %}
+
       <tr class="border-t border-slate-800 hover:bg-slate-900/30">
         <td class="px-4 py-3 font-medium">{{ it.terrarium_slug }}</td>
 
         <td class="px-4 py-3">
-          {% if it.temperature is not none %}
-            {{ '%.1f'|format(it.temperature) }} {{ it.temperature_unit or '°C' }}
+          {% if t is not none %}
+            {{ '%.1f'|format(t) }} {{ tu }}
           {% else %}
             <span class="text-slate-500">—</span>
           {% endif %}
         </td>
 
         <td class="px-4 py-3">
-          {% if it.humidity is not none %}
-            {{ '%.0f'|format(it.humidity) }} {{ it.humidity_unit or '%' }}
+          {% if h is not none %}
+            {{ '%.0f'|format(h) }} {{ hu }}
           {% else %}
             <span class="text-slate-500">—</span>
           {% endif %}
         </td>
 
         <td class="px-4 py-3 text-slate-400">
-          {% if updated %}
-            {{ updated.strftime('%Y-%m-%d %H:%M:%S') }}
-          {% else %}
-            -
-          {% endif %}
+          {% if updated %}{{ updated.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}-{% endif %}
         </td>
 
         <td class="px-4 py-3">
