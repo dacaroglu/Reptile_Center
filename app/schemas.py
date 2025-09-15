@@ -1,15 +1,23 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
+
+RoleName = Literal["basking_temp", "env_temp", "humidity"]
 
 class IngestPayload(BaseModel):
-    terrarium_slug: str = Field(min_length=1, max_length=50)
+    terrarium_slug: str
     sensor_type: Literal["temperature", "humidity"]
     value: float
-    unit: str = Field(min_length=1, max_length=16)
-    entity_id: str | None = Field(default=None, max_length=128)
-    ts: datetime  # ISO8601 from HA; assumed UTC or local (we'll coerce to UTC in server)
+    unit: str
+    entity_id: str | None = None
+    ts: datetime
+    role: Optional[RoleName] = None   # <-- NEW (optional)
+
+class RoleMapRequest(BaseModel):
+    terrarium_slug: str
+    role: RoleName
+    entity_id: str
 
 class TerrariumOut(BaseModel):
     id: int
@@ -34,3 +42,15 @@ class SummaryItem(BaseModel):
     humidity_unit: str | None = None
     ts_temperature: datetime | None = None
     ts_humidity: datetime | None = None
+
+class RoleSummaryItem(BaseModel):
+    terrarium_slug: str
+    basking_temp: float | None = None
+    basking_temp_unit: str | None = None
+    basking_temp_ts: datetime | None = None
+    env_temp: float | None = None
+    env_temp_unit: str | None = None
+    env_temp_ts: datetime | None = None
+    humidity: float | None = None
+    humidity_unit: str | None = None
+    humidity_ts: datetime | None = None

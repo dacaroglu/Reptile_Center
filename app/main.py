@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from .routers import sse 
 from .config import settings
 from .database import init_db
-from .routers import ingest, terrariums, health,ui
+from .routers import ingest, terrariums, health,ui,admin
 
 def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name)
@@ -20,6 +20,7 @@ def create_app() -> FastAPI:
     app.include_router(terrariums.router)
     app.include_router(ui.router)
     app.include_router(sse.router)
+    app.include_router(admin.router)
 
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
@@ -27,9 +28,7 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
-# Ensure tables exist on first run
 try:
     init_db()
 except Exception:
-    # Avoid crashing in read-only environments; handle via CLI if needed
     pass

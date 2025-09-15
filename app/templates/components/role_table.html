@@ -1,0 +1,30 @@
+<div id="role-table" class="rounded-xl border border-slate-800 overflow-hidden">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-900/60">
+      <tr>
+        <th class="px-3 py-2 text-left">Role</th>
+        <th class="px-3 py-2 text-left">Current entity</th>
+        <th class="px-3 py-2 text-left">Assign</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for role in roles %}
+      <tr class="border-t border-slate-800">
+        <td class="px-3 py-2 font-medium">{{ role.value }}</td>
+        <td class="px-3 py-2">{{ role_map.get(role.value) or '—' }}</td>
+        <td class="px-3 py-2">
+          <form hx-post="/admin/terrarium/{{ slug }}/map" hx-target="#role-table" hx-swap="outerHTML" class="flex gap-2 items-center">
+            <input type="hidden" name="role" value="{{ role.value }}" />
+            <select name="entity_id" class="bg-slate-900 border border-slate-700 rounded px-2 py-1">
+              {% for s in seen %}
+                <option value="{{ s.entity_id }}">{{ s.entity_id }} ({{ s.sensor_type }})</option>
+              {% endfor %}
+            </select>
+            <button class="px-2 py-1 rounded bg-sky-600 hover:bg-sky-500">Set</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

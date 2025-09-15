@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import crud
-from ..schemas import SummaryItem, ReadingOut
+from ..schemas import SummaryItem, ReadingOut,RoleSummaryItem
 from typing import List
 
 router = APIRouter(prefix="/api/v1", tags=["query"])
@@ -28,3 +28,6 @@ def readings(terrarium: str = Query(..., description="Terrarium slug"),
             entity_id=r.entity_id
         ))
     return out
+@router.get("/summary/roles", response_model=list[RoleSummaryItem])
+def summary_roles(db: Session = Depends(get_db)):
+    return crud.role_summary(db)

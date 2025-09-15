@@ -1,6 +1,6 @@
 from __future__ import annotations
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Float, DateTime, ForeignKey, Enum, func, Index
+from sqlalchemy import String, Float, DateTime, ForeignKey, Enum, func, Index,UniqueConstraint
 from datetime import datetime, timezone
 import enum
 from .database import Base
@@ -31,3 +31,18 @@ class Reading(Base):
     terrarium: Mapped["Terrarium"] = relationship(back_populates="readings")
 
 Index("ix_readings_terrarium_type_ts", Reading.terrarium_id, Reading.sensor_type, Reading.ts.desc())
+
+class SensorRoleName(str, enum.Enum):
+    basking_temp = "basking_temp"
+    env_temp = "env_temp"
+    humidity = "humidity"
+
+class SensorRole(Base):
+    __tablename__ = "sensor_roles"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    terrarium_id: Mapped[int] = mapped_column(ForeignKey("terrariums.id", ondelete="CASCADE"), index=True)
+    role: Mapped[SensorRoleName] = mapped_column(Enum(SensorRoleName), index=True)
+    entity_id: Mapped[str] = mapped_column(String(128))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (UniqueConstraint("terrarium_id", "role", name="uq_role_per_terrarium"),)
