@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+  <a href="/" class="text-sky-400 hover:underline">← Back</a>
+  <h2 class="text-lg font-medium mt-2 mb-4">
+    Map sensors for <span class="font-mono">{{ slug }}</span>
+  </h2>
+
+  <div id="role-table"
+       hx-get="/admin/terrarium/{{ slug }}/map"
+       hx-trigger="load"
+       hx-swap="outerHTML">
+    <!-- replaced by fragment -->
+  </div>
+{% endblock %}

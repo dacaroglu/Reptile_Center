@@ -4,19 +4,26 @@ from sqlalchemy import select, desc, func
 from datetime import datetime, timedelta, timezone
 from .models import Terrarium, Reading, SensorType, SensorRole, SensorRoleName
 
-def get_or_create_terrarium(db: Session, slug: str) -> Terrarium:
-    t = db.scalar(select(Terrarium).where(Terrarium.slug == slug))
-    if t:
-        return t
-    t = Terrarium(slug=slug, name=slug.replace("-", " ").title())
-    db.add(t)
-    db.commit()
-    db.refresh(t)
-    return t
+def get_or_create_terrarium(db, slug: str) -> Terrarium:
+    """Return existing terrarium by slug or create it on first use."""
+    terr = db.execute(select(Terrarium).where(Terrarium.slug == slug)).scalar_one_or_none()
+    if terr:
+        return terr
+
+    terr = Terrarium(slug=slug)            # if your model has 'name', you can also set name=slug
+    db.add(terr)
+    try:
+        db.commit()
+    except IntegrityError:
+        # created by a concurrent request; fetch it
+        db.rollback()
+        terr = db.execute(select(Terrarium).where(Terrarium.slug == slug)).scalar_one()
+    db.refresh(terr)
+    return terr
 
 def create_reading(db: Session, terrarium: Terrarium, sensor_type: SensorType, value: float, unit: str, entity_id: str | None, ts: datetime) -> Reading:
     r = Reading(
-        terrarium_id=terrarium.id,
+        terrarium=terrarium,
         sensor_type=sensor_type,
         value=value,
         unit=unit,

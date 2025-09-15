@@ -1,0 +1,49 @@
+cd /home/ubuntu/opt/reptile/Reptile_Center
+
+cat > db <<'BASH'
+
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+
+# Default to your local socket DSN (peer auth, no password)
+
+export DATABASE_URL="${DATABASE_URL:-postgresql+psycopg:///reptile?host=/var/run/postgresql}"
+
+
+# Use venv's alembic so it's reliable
+
+ALEMBIC="/home/ubuntu/opt/reptile/Reptile_Center/zenv/bin/alembic"
+
+
+cmd="${1:-}"; shift || true
+
+case "${cmd}" in
+
+  migrate)   exec "$ALEMBIC" revision --autogenerate -m "${1:-auto}" ;;
+
+  upgrade)   exec "$ALEMBIC" upgrade   "${1:-head}" ;;
+
+  downgrade) exec "$ALEMBIC" downgrade "${1:--1}" ;;
+
+  stamp)     exec "$ALEMBIC" stamp     "${1:-head}" ;;
+
+  current)   exec "$ALEMBIC" current ;;
+
+  history)   exec "$ALEMBIC" history ;;
+
+  *)
+
+    echo "usage: ./db {migrate|upgrade|downgrade|stamp|current|history} [arg]"
+
+    exit 1
+
+    ;;
+
+esac
+
+BASH
+
+chmod +x db
+

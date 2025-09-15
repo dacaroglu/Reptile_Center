@@ -21,7 +21,8 @@ def readings(terrarium: str = Query(..., description="Terrarium slug"),
     for r in rows:
         out.append(ReadingOut(
             terrarium_slug=r.terrarium.slug if r.terrarium else terrarium,
-            sensor_type=r.sensor_type.value,
+            sensor_type = r.sensor_type.value if hasattr(r.sensor_type, "value") else r.sensor_type
+,
             value=r.value,
             unit=r.unit,
             ts=r.ts,

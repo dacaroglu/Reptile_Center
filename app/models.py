@@ -49,8 +49,4 @@ class SensorRole(Base):
     entity_id: Mapped[str] = mapped_column(String(128))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    terrarium: Mapped["Terrarium"] = relationship(back_populates="sensor_roles")
-
-    __table_args__ = (
-        UniqueConstraint("terrarium_id", "role", name="uq_sensor_role_per_terrarium"),
-    )
+    __table_args__ = (UniqueConstraint("terrarium_id", "role", name="uq_role_per_terrarium"),)
