@@ -8,11 +8,13 @@ RoleName = Literal["basking_temp", "env_temp", "humidity"]
 class IngestPayload(BaseModel):
     terrarium_slug: str
     sensor_type: Literal["temperature", "humidity"]
-    value: float
+    value: float | None  
     unit: str
     entity_id: str | None = None
     ts: datetime
-    role: Optional[RoleName] = None   # <-- NEW (optional)
+    role: RoleName | None = None
+    available: bool | None = None
+
 
 class RoleMapRequest(BaseModel):
     terrarium_slug: str
