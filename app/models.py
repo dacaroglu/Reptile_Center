@@ -1,6 +1,6 @@
 from __future__ import annotations
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Float, DateTime, ForeignKey, Enum, func, Index,UniqueConstraint
+from sqlalchemy import Boolean, String, Float, DateTime, ForeignKey, Enum, func, Index,UniqueConstraint, text
 from datetime import datetime, timezone
 import enum
 from .database import Base
@@ -20,17 +20,20 @@ class Terrarium(Base):
 
 class Reading(Base):
     __tablename__ = "readings"
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     terrarium_id: Mapped[int] = mapped_column(ForeignKey("terrariums.id", ondelete="CASCADE"), index=True)
-    sensor_type: Mapped[SensorType] = mapped_column(Enum(SensorType), index=True)
-    value: Mapped[float] = mapped_column(Float)
-    unit: Mapped[str] = mapped_column(String(16))
+    sensor_type: Mapped[str] = mapped_column(String(16), nullable=False)
+
+    value: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    unit: Mapped[str | None] = mapped_column(String(16), nullable=True)
     entity_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+
+    available: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("1"))
 
     terrarium: Mapped["Terrarium"] = relationship(back_populates="readings")
-
-Index("ix_readings_terrarium_type_ts", Reading.terrarium_id, Reading.sensor_type, Reading.ts.desc())
 
 class SensorRoleName(str, enum.Enum):
     basking_temp = "basking_temp"
@@ -39,10 +42,15 @@ class SensorRoleName(str, enum.Enum):
 
 class SensorRole(Base):
     __tablename__ = "sensor_roles"
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     terrarium_id: Mapped[int] = mapped_column(ForeignKey("terrariums.id", ondelete="CASCADE"), index=True)
     role: Mapped[SensorRoleName] = mapped_column(Enum(SensorRoleName), index=True)
     entity_id: Mapped[str] = mapped_column(String(128))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    __table_args__ = (UniqueConstraint("terrarium_id", "role", name="uq_role_per_terrarium"),)
+    terrarium: Mapped["Terrarium"] = relationship(back_populates="sensor_roles")
+
+    __table_args__ = (
+        UniqueConstraint("terrarium_id", "role", name="uq_sensor_role_per_terrarium"),
+    )

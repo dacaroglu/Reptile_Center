@@ -1,42 +1,38 @@
-from __future__ import annotations
-from fastapi import APIRouter, Depends, status, HTTPException
+# app/routers/ingest.py
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from datetime import timezone
 from ..schemas import IngestPayload, ReadingOut
+from ..models import Reading, Terrarium
 from ..database import get_db
-from ..deps import verify_api_key
-from .. import crud, models
-from ..events import event_bus
+# ... auth etc.
 
-router = APIRouter(prefix="/api/v1", tags=["ingest"])
+@router.post("/api/v1/ingest", response_model=ReadingOut, status_code=202, dependencies=[Depends(require_api_key)])
+async def ingest(payload: IngestPayload, request: Request, db: Session = Depends(get_db)):
+    terr = db.query(Terrarium).filter(Terrarium.slug == payload.terrarium_slug).one_or_none()
+    if not terr:
+        raise HTTPException(404, "Terrarium not found")
 
-@router.post("/ingest", status_code=status.HTTP_202_ACCEPTED, response_model=ReadingOut, dependencies=[Depends(verify_api_key)])
-async def ingest(payload: IngestPayload, db: Session = Depends(get_db)):
-    # normalize timestamp to UTC
-    ts = payload.ts
-    if ts.tzinfo is None:
-        ts = ts.replace(tzinfo=timezone.utc)
-    else:
-        ts = ts.astimezone(timezone.utc)
+    # default available: True when value is present, False when it's null
+    available = payload.available if payload.available is not None else (payload.value is not None)
 
-    terr = crud.get_or_create_terrarium(db, payload.terrarium_slug)
-    sensor_type = models.SensorType(payload.sensor_type)
-    reading = crud.create_reading(
-        db,
-        terrarium=terr,
-        sensor_type=sensor_type,
-        value=payload.value,
+    row = Reading(
+        terrarium_id=terr.id,
+        sensor_type=payload.sensor_type,
+        value=payload.value,     # may be None
         unit=payload.unit,
         entity_id=payload.entity_id,
-        ts=ts,
+        ts=payload.ts,
+        available=available,
     )
-    await event_bus.publish({"terrarium": terr.slug, "sensor_type": sensor_type.value})
+    db.add(row)
+    db.commit()
 
     return ReadingOut(
         terrarium_slug=terr.slug,
-        sensor_type=sensor_type.value,
-        value=reading.value,
-        unit=reading.unit,
-        ts=reading.ts,
-        entity_id=reading.entity_id,
+        sensor_type=row.sensor_type,
+        value=row.value,
+        unit=row.unit,
+        entity_id=row.entity_id,
+        ts=row.ts,
+        available=row.available,
     )

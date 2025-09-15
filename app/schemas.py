@@ -7,12 +7,21 @@ RoleName = Literal["basking_temp", "env_temp", "humidity"]
 
 class IngestPayload(BaseModel):
     terrarium_slug: str
-    sensor_type: Literal["temperature", "humidity"]
-    value: float | None  
-    unit: str
+    sensor_type: Literal["temperature","humidity"]
+    role: Literal["basking_temp","env_temp","humidity"] | None = None
+    value: float | None = None      # allow null
+    unit: str | None = None
     entity_id: str | None = None
     ts: datetime
-    role: RoleName | None = None
+    available: bool | None = None   # optional flag
+
+class ReadingOut(BaseModel):
+    terrarium_slug: str
+    sensor_type: str
+    value: float | None = None
+    unit: str | None = None
+    entity_id: str | None = None
+    ts: datetime
     available: bool | None = None
 
 
@@ -27,14 +36,6 @@ class TerrariumOut(BaseModel):
     name: str | None
 
     model_config = ConfigDict(from_attributes=True)
-
-class ReadingOut(BaseModel):
-    terrarium_slug: str
-    sensor_type: str
-    value: float
-    unit: str
-    ts: datetime
-    entity_id: str | None = None
 
 class SummaryItem(BaseModel):
     terrarium_slug: str

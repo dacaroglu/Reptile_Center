@@ -44,12 +44,13 @@
         <td class="px-4 py-3">
           <a href="/terrarium/{{ it.terrarium_slug }}" class="text-sky-400 hover:underline">Open</a>
         </td>
-        {% set off = it.basking_temp_unit and it.basking_temp_unit|lower in ['off','offline'] %}
-      <td class="...">
-        {% if off %} — <span class="text-slate-400">(off)</span>
-        {% else %} {{ '%.1f'|format(it.basking_temp) }} {{ it.basking_temp_unit }}
-        {% endif %}
-      </td>
+        {% set off = (it.basking_temp is none) or (it.basking_temp_available is defined and not it.basking_temp_available) %}
+        <td>
+          {% if off %} — <span class="text-slate-400">(off)</span>
+          {% else %} {{ '%.1f'|format(it.basking_temp) }} {{ it.basking_temp_unit }}
+          {% endif %}
+        </td>
+
       </tr>
     {% else %}
       <tr><td class="px-4 py-6 text-slate-400" colspan="5">No data yet. Once HA pushes a reading, it will appear here.</td></tr>
